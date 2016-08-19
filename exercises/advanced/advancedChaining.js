@@ -16,17 +16,34 @@
 
 var Promise = require('bluebird');
 var lib = require('../../lib/advancedChainingLib.js');
+var id = 'A85Ce2m5v0zt5PCvIP6gCzd3dQtFTVX15s-3hkY1';
+var secret = '6JKwYTNMuN1lkNRzXJX09t6NTBLIW20knEaIm0M4';
+var token = '4yG4vcHvXNPXqbzp4ziHY0qSomjm0y';
+
+var request = require('request');
+var fs = Promise.promisifyAll(require('fs'));
+var pro = require('../bare_minimum/promisification'); 
+var con = require('../bare_minimum/promiseConstructor');
 
 // We're using Clarifai's API to recognize different an image into a list of tags
 // Visit the following url to sign up for a free account
 //     https://developer.clarifai.com/accounts/login/?next=/applications/
 // Then, create a new Application and pass your Client Id and Client Secret into the method below
-lib.setImageTaggerCredentials('YOUR_CLIENT_ID', 'YOUR_CLIENT_SECRET')
+lib.setImageTaggerCredentials(id, secret);
 
-var searchCommonTagsFromGitHubProfiles = function(githubHandles) {
+var searchCommonTagsFromGitHubProfiles = githubHandles => {
+  var allProfiles = githubHandles.map(lib.getGitHubProfile);
+  return Promise.all(allProfiles)
+  .then(allData => Promise.all(allData.map(data => 
+    lib.tagImage(data.avatarUrl, token))))
+  .then(tags => console.log('HELLLLLLO', lib.getIntersection(tags)));
 };
+
 
 // Export these functions so we can unit test them
 module.exports = {
   searchCommonTagsFromGitHubProfiles: searchCommonTagsFromGitHubProfiles
 };
+// var searchCommonTagsFromGitHubProfiles = function(githubHandles) {
+//   return new Promise((resolve, reject)=> {  resolve(['men']); } );
+// };
